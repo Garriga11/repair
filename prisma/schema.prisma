@@ -1,0 +1,192 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String          @id @default(cuid())
+  name           String?
+  email          String          @unique
+  password       String
+  roleId         String
+  createdAt      DateTime        @default(now())
+  ticket         Ticket[]
+  role           Role            @relation(fields: [roleId], references: [id])
+  stockMovements StockMovement[]
+}
+
+model Role {
+  id    String @id @default(cuid())
+  name  String @unique
+  users User[]
+}
+
+model Ticket {
+  id            String       @id @default(cuid())
+  device        String?
+  deviceSN      String?
+  location      String?
+  status        String       @default("OPEN")
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  userId        String?
+  accountId     String?
+  description   String?
+  customerName  String?
+  customerPhone String?
+  ticketBalance String?
+  repairTypeId  String?
+  invoice       Invoice?
+  revenue       Revenue[]
+  account       Account?     @relation(fields: [accountId], references: [id])
+  repairType    RepairType?  @relation(fields: [repairTypeId], references: [id])
+  User          User?        @relation(fields: [userId], references: [id])
+  ticketParts   TicketPart[]
+}
+
+model Account {
+  id        String    @id @default(cuid())
+  name      String
+  balance   Float     @default(0)
+  createdAt DateTime  @default(now())
+  invoices  Invoice[]
+  payments  Payment[]
+  revenue   Revenue[]
+  tickets   Ticket[]
+}
+
+model Invoice {
+  id         String    @id @default(cuid())
+  ticketId   String    @unique
+  accountId  String
+  total      Float
+  paidAmount Float     @default(0)
+  dueAmount  Float
+  createdAt  DateTime  @default(now())
+  account    Account   @relation(fields: [accountId], references: [id])
+  ticket     Ticket    @relation(fields: [ticketId], references: [id])
+  Payment    Payment[]
+  revenue    Revenue[]
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  accountId String
+  invoiceId String?
+  amount    Float
+  method    String
+  createdAt DateTime @default(now())
+  revenueId String?
+  account   Account  @relation(fields: [accountId], references: [id])
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id])
+  revenue   Revenue? @relation(fields: [revenueId], references: [id])
+}
+
+model Revenue {
+  id          String    @id @default(cuid())
+  amount      Float
+  source      String
+  description String?
+  invoiceId   String?
+  ticketId    String?
+  accountId   String?
+  paymentDate DateTime
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  Payment     Payment[]
+  account     Account?  @relation(fields: [accountId], references: [id])
+  invoice     Invoice?  @relation(fields: [invoiceId], references: [id])
+  ticket      Ticket?   @relation(fields: [ticketId], references: [id])
+}
+
+model InventoryItem {
+  id             String          @id @default(cuid())
+  sku            String          @unique
+  name           String
+  description    String?
+  category       String?
+  deviceModel    String?
+  binNumber      String?
+  location       String?
+  unit           String          @default("piece")
+  quantity       Int             @default(0)
+  reorderLevel   Int             @default(5)
+  cost           Float
+  sellPrice      Float?
+  needsReorder   Boolean         @default(false)
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  stockMovements StockMovement[]
+  ticketParts    TicketPart[]
+  repairTypes    RepairType[]    @relation("InventoryItemToRepairType")
+
+  @@map("inventory_items")
+}
+
+model RepairType {
+  id          String          @id @default(cuid())
+  name        String
+  description String?
+  deviceType  String
+  deviceModel String
+  category    String
+  laborPrice  Float
+  isActive    Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  tickets     Ticket[]
+  parts       InventoryItem[] @relation("InventoryItemToRepairType")
+
+  @@map("repair_types")
+}
+
+model TicketPart {
+  id            String        @id @default(cuid())
+  ticketId      String
+  inventoryId   String
+  quantityUsed  Int
+  costAtTime    Float
+  createdAt     DateTime      @default(now())
+  inventoryItem InventoryItem @relation(fields: [inventoryId], references: [id])
+  ticket        Ticket        @relation(fields: [ticketId], references: [id])
+
+  @@map("ticket_parts")
+}
+
+model StockMovement {
+  id            String            @id @default(cuid())
+  inventoryId   String
+  type          StockMovementType
+  quantity      Int
+  reason        String?
+  reference     String?
+  userId        String?
+  createdAt     DateTime          @default(now())
+  inventoryItem InventoryItem     @relation(fields: [inventoryId], references: [id])
+  user          User?             @relation(fields: [userId], references: [id])
+
+  @@map("stock_movements")
+}
+
+enum StockMovementType {
+  STOCK_IN
+  STOCK_OUT
+  ADJUSTMENT
+  DAMAGED
+  RETURNED
+}
+
+enum RevenueSource {
+  REPAIR_SERVICE
+  PARTS_SALE
+  LABOR_CHARGE
+  DIAGNOSTIC_FEE
+  RUSH_SERVICE
+  WARRANTY_WORK
+  OTHER
+}
