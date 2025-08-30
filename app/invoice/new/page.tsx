@@ -1,13 +1,12 @@
+
 import { addInvoice } from '../actions';
-import { useRouter } from 'next/navigation';
+import { redirect } from 'next/navigation';
 
 export default function AddInvoicePage() {
-  const router = useRouter();
-
   async function handleSubmit(formData: FormData) {
     'use server';
     await addInvoice(formData);
-    router.push('/invoice');
+    redirect('/invoice');
   }
 
   return (
@@ -40,7 +39,7 @@ export default function AddInvoicePage() {
         </div>
         <div className="flex gap-4 pt-6">
           <button type="submit" className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">Add Invoice</button>
-          <button type="button" onClick={() => router.back()} className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600">Cancel</button>
+          <a href="/invoice" className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 text-center">Cancel</a>
         </div>
       </form>
     </div>
