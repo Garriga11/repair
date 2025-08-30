@@ -1,63 +1,18 @@
-// app/tickets/page.tsx
-"use client";
-
-import { useSearchParams, usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import Link from "next/link";
-
-
-interface TicketDTO {
-  id: string;
-  device: string;
-  deviceSN: string;
-  location: string;
-  accountId: string;
-  description: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-
-  };
-
+import { Suspense } from "react";
+import TicketList from "@/app/components/ticketList";
 
 export default function TicketsPage() {
-  const searchParams = useSearchParams();
-  const pageParam = searchParams.get("page") ?? "1";
-  const page = parseInt(pageParam, 10);
-  const [tickets, setTickets] = useState<TicketDTO[]>([]);
-  const [totalPages, setTotalPages] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    async function fetchTickets() {
-      setIsLoading(true);
-      try {
-        // 🔑 Use backticks and match your API route
-        const res = await fetch(`/api/tickets?page=${page}`);
-        if (!res.ok) {
-          throw new Error(`Failed to fetch tickets: ${res.statusText}`);
-        }
-
-        const { tickets: data, totalPages } = await res.json();
-        setTickets(data);
-        setTotalPages(totalPages);
-      } catch (err) {
-        console.error("Error fetching tickets:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchTickets();
-  }, [page]);
-
   return (
     <div className="min-h-screen bg-white flex flex-col items-center p-8">
       <h1 className="text-5xl font-extrabold text-blue-600 mb-8">
         Latest Tickets
       </h1>
-
-      {isLoading ? (
+      <Suspense fallback={<div>Loading tickets...</div>}>
+        <TicketList />
+      </Suspense>
+    </div>
+  );
+}
         <div className="flex items-center justify-center space-x-2 min-h-[200px] shadow-2xl">
           <div className="w-6 h-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
           <p className="text-gray-600">Loading...</p>
