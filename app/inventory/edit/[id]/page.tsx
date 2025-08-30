@@ -3,11 +3,7 @@ import prisma from '@/lib/prisma';
 import EditInventoryForm from '@/app/inventory/edit/[id]/EditInventory';
 import { notFound } from 'next/navigation';
 
-type Props = {
-  params: { id: string }
-};
-
-export default async function EditInventoryPage({ params }: Props) {
+export default async function EditInventoryPage({ params }: any) {
   const item = await prisma.inventoryItem.findUnique({
     where: { id: params.id }
   });
