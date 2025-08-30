@@ -1,5 +1,5 @@
 
-import { getRevenueFromInvoices } from '../app/revenue/actions-safe';
+import { getRevenueFromInvoices } from '@/app/revenue/actions-safe';
 import { Card, CardHeader, CardTitle, CardContent } from './Card';
 
 export default async function RevenueCard() {
