@@ -25,7 +25,7 @@ function formatDate(date: Date | string) {
   return new Date(date).toLocaleString();
 }
 
-export default async function InventoryHistoryPage({ params }: { params: { id: string } }) {
+export default async function InventoryHistoryPage({ params }: any) {
   const item = await prisma.inventoryItem.findUnique({
     where: { id: params.id },
   });
