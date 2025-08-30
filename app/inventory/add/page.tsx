@@ -1,56 +1,45 @@
-'use client'
-
 import { addInventoryItem } from '../actions';
-import { useRouter } from 'next/navigation';
+import { redirect } from 'next/navigation';
+
+const deviceCategories = [
+  'Screens',
+  'Charging Ports',
+  'Batteries',
+  'Cameras',
+  'Speakers',
+  'Microphones',
+  'Tools',
+  'Adhesives',
+  'Screws',
+  'Other'
+];
+
+const deviceModels = [
+  'iPhone 13',
+  'iPhone 14',
+  'iPhone 15',
+  'Samsung Galaxy S21',
+  'Samsung Galaxy S22',
+  'Samsung Galaxy S23',
+  'iPad Air',
+  'iPad Pro',
+  'Google Pixel 7',
+  'Google Pixel 8',
+  'Universal',
+  'Other'
+];
 
 export default function AddInventoryPage() {
-  const router = useRouter();
-
-  const deviceCategories = [
-    'Screens',
-    'Charging Ports',
-    'Batteries',
-    'Cameras',
-    'Speakers',
-    'Microphones',
-    'Tools',
-    'Adhesives',
-    'Screws',
-    'Other'
-  ];
-
-  const deviceModels = [
-    'iPhone 13',
-    'iPhone 14',
-    'iPhone 15',
-    'Samsung Galaxy S21',
-    'Samsung Galaxy S22',
-    'Samsung Galaxy S23',
-    'iPad Air',
-    'iPad Pro',
-    'Google Pixel 7',
-    'Google Pixel 8',
-    'Universal',
-    'Other'
-  ];
-
-
   async function handleSubmit(formData: FormData) {
     'use server';
     await addInventoryItem(formData);
-    router.push('/inventory');
+    redirect('/inventory');
   }
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <div className="flex items-center mb-6">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="mr-4 text-blue-600 hover:text-blue-800"
-        >
-          ← Back
-        </button>
+        <a href="/inventory" className="mr-4 text-blue-600 hover:text-blue-800">← Back</a>
         <h1 className="text-3xl font-bold">Add New Inventory Item</h1>
       </div>
 
@@ -177,7 +166,6 @@ export default function AddInventoryPage() {
               placeholder="0.00"
             />
           </div>
-
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Sell Price
@@ -228,13 +216,12 @@ export default function AddInventoryPage() {
           >
             Add Inventory Item
           </button>
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600"
+          <a
+            href="/inventory"
+            className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 text-center"
           >
             Cancel
-          </button>
+          </a>
         </div>
       </form>
     </div>
