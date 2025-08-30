@@ -5,7 +5,7 @@ import type { Ticket } from "@prisma/client";
 export default function RecentTickets({
   tickets = [],
 }: {
-  tickets?: Pick<Ticket, "id" | "serialNumber" | "status" | "createdAt">[];
+  tickets?: Pick<Ticket, "id" | "deviceSN" | "status" | "createdAt">[];
 }) {
   return (
     <div className="overflow-auto bg-white rounded shadow">
@@ -26,7 +26,7 @@ export default function RecentTickets({
                     href={`/dashboard/tickets/${t.id}`}
                     className="text-blue-600 hover:underline"
                   >
-                    {t.serialNumber}
+                    {t.deviceSN}
                   </Link>
                 </td>
                 <td className="px-4 py-2">
