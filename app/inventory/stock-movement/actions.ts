@@ -2,6 +2,8 @@
 
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+
+
 import type { StockMovementType } from '@prisma/client';
 
 export async function addStockMovement(formData: FormData) {
@@ -16,7 +18,7 @@ export async function addStockMovement(formData: FormData) {
   await prisma.stockMovement.create({
     data: {
       inventoryId,
-      type,
+  type,
       quantity,
       reason,
       reference,
