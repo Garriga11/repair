@@ -5,66 +5,16 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-interface InventoryItem {
-  id: string;
-  sku: string;
-  name: string;
-  description?: string;
-  category?: string;
-  deviceModel?: string;
-  quantity: number;
-  reorderLevel: number;
-  cost: number;
-  sellPrice?: number;
-  needsReorder: boolean;
-  isActive: boolean;
-}
+import { PrismaClient } from '@prisma/client';
+import InventoryClient from './InventoryClient';
 
-export default function InventoryPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-  const [inventory, setInventory] = useState<InventoryItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
+const prisma = new PrismaClient();
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
-      return;
-    }
-    
-    fetchInventory();
-  }, [status, router]);
-
-  const fetchInventory = async () => {
-    try {
-      const response = await fetch('/api/inventory');
-      if (response.ok) {
-        const data = await response.json();
-        setInventory(data);
-      }
-    } catch (error) {
-      console.error('Error fetching inventory:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filteredInventory = inventory.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (item.deviceModel && item.deviceModel.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    switch (filter) {
-      case 'low-stock':
-        return matchesSearch && item.quantity <= item.reorderLevel;
-      case 'out-of-stock':
-        return matchesSearch && item.quantity === 0;
-      case 'needs-reorder':
-        return matchesSearch && item.needsReorder;
-      default:
-        return matchesSearch && item.isActive;
+export default async function InventoryPage() {
+  const inventory = await prisma.inventoryItem.findMany({
+    orderBy: { createdAt: 'desc' },
+  });
+  return <InventoryClient inventory={inventory} />;
     }
   });
 
