@@ -4,11 +4,9 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import prisma from "@/lib/prisma"
+import InventoryClient from '@/app/inventory/InventoryClient';
 
-import { PrismaClient } from '@prisma/client';
-import InventoryClient from './InventoryClient';
-
-const prisma = new PrismaClient();
 
 export default async function InventoryPage() {
   const inventory = await prisma.inventoryItem.findMany({
