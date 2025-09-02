@@ -1,144 +1,61 @@
-'use server';
+'use client';
 
-import prisma from '@/lib/prisma';
+import { useState } from 'react';
+import { createSimpleTicketAction } from '@/app/actions/tickets';
 
-export async function createTicketAction({
-  description,
-  accountId,
-  depositAmount,
-}: {
-  description: string;
-  accountId: string;
-  depositAmount: number;
-}) {
-  const ticket = await prisma.ticket.create({
-    data: {
-      description,
-      account: { connect: { id: accountId } },
-    },
-  });
+export default function NewTicketForm() {
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [device, setDevice] = useState('');
+  const [message, setMessage] = useState('');
 
-  if (depositAmount > 0) {
-    await prisma.payment.create({
-      data: {
-        accountId,
-        amount: depositAmount,
-        method: 'cash',
-      },
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const res = await createSimpleTicketAction({
+      customerName,
+      customerPhone,
+      device,
+      deviceSN: '12345',
+      description: 'Screen cracked',
+      location: 'Shop 1',
+      ticketBalance: '100',
+      status: 'open',
     });
 
-    // Reduce account balance (credit)
-    await prisma.account.update({
-      where: { id: accountId },
-      data: {
-        balance: { decrement: depositAmount },
-      },
-    });
-  }
-
-  return { ticketId: ticket.id };
-}
-
-// New action for the simple ticket form with customer info
-export async function createSimpleTicketAction(data: {
-  customerName: string;
-  customerPhone: string;
-  device: string;
-  deviceSN: string;
-  description: string;
-  location: string;
-  ticketBalance: string;
-  status: string;
-  repairTypeId?: string;
-}) {
-  try {
-    // First, try to find existing account by customer name
-    let account = await prisma.account.findFirst({
-      where: {
-        name: {
-          contains: data.customerName,
-          mode: 'insensitive' // Case insensitive search
-        }
-      }
-    });
-
-    // If no account exists, create a new one
-    if (!account) {
-      account = await prisma.account.create({
-        data: {
-          name: data.customerName,
-          balance: 0.0
-        }
-      });
-      console.log(`Created new account for customer: ${data.customerName}`);
+    if (res.success) {
+      setMessage(`✅ Ticket created: ${res.ticketId}`);
     } else {
-      console.log(`Found existing account for customer: ${data.customerName}`);
+      setMessage(`❌ ${res.error}`);
     }
-
-    console.log(`🎫 Creating ticket with data:`, {
-      customerName: data.customerName,
-      repairTypeId: data.repairTypeId,
-      device: data.device,
-      accountId: account.id
-    });
-
-    // Create the ticket with the account
-    const ticket = await prisma.ticket.create({
-      data: {
-        customerName: data.customerName,
-        customerPhone: data.customerPhone,
-        device: data.device,
-        deviceSN: data.deviceSN,
-        description: data.description,
-        location: data.location,
-        ticketBalance: data.ticketBalance,
-        status: data.status,
-        accountId: account.id, // Link to the account
-        repairTypeId: data.repairTypeId || null, // Add repair type if selected
-      },
-    });
-
-    console.log(`✅ Ticket created successfully:`, {
-      ticketId: ticket.id,
-      repairTypeId: ticket.repairTypeId,
-      status: ticket.status
-    });
-
-    return { 
-      success: true, 
-      ticketId: ticket.id,
-      accountId: account.id,
-      accountName: account.name 
-    };
-  } catch (error) {
-    console.error('Error creating ticket:', error);
-    return { success: false, error: 'Failed to create ticket' };
   }
-}
 
-// Action to manually create an account
-export async function createAccountAction(data: {
-  name: string;
-  initialBalance?: number;
-  phone?: string;
-  email?: string;
-}) {
-  try {
-    const account = await prisma.account.create({
-      data: {
-        name: data.name,
-        balance: data.initialBalance || 0.0,
-      },
-    });
-
-    return { 
-      success: true, 
-      accountId: account.id, 
-      accountName: account.name,
-      balance: account.balance 
-    };
-  } catch (error) {
-    console.error('Error creating account:', error);
-    return { success: false, error: 'Failed to create account' };
-  }
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <input
+        type="text"
+        placeholder="Customer Name"
+        value={customerName}
+        onChange={(e) => setCustomerName(e.target.value)}
+        className="border p-2 w-full"
+      />
+      <input
+        type="text"
+        placeholder="Phone"
+        value={customerPhone}
+        onChange={(e) => setCustomerPhone(e.target.value)}
+        className="border p-2 w-full"
+      />
+      <input
+        type="text"
+        placeholder="Device"
+        value={device}
+        onChange={(e) => setDevice(e.target.value)}
+        className="border p-2 w-full"
+      />
+      <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
+        Save Ticket
+      </button>
+      {message && <p>{message}</p>}
+    </form>
+  );
 }
